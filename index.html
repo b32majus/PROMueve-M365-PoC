@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PROMueve · PoC GitHub Pages → Power Automate</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    body { margin: 0; background: #f6f7f9; color: #17202a; }
+    main { max-width: 860px; margin: 40px auto; padding: 0 20px 60px; }
+    .card { background: white; border: 1px solid #dfe4ea; border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.05); }
+    h1 { font-size: 1.55rem; margin-top: 0; }
+    p { line-height: 1.5; }
+    .warning { background: #fff8e6; border: 1px solid #f0d58a; padding: 12px 14px; border-radius: 10px; }
+    label { display:block; font-weight: 650; margin: 16px 0 6px; }
+    input, textarea, button { font: inherit; }
+    input, textarea {
+      width: 100%; box-sizing: border-box; border: 1px solid #bbc4ce;
+      border-radius: 9px; padding: 10px 12px; background: #fff;
+    }
+    textarea { min-height: 92px; resize: vertical; }
+    .row { display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:end; }
+    button {
+      border: 0; border-radius: 9px; padding: 11px 16px; cursor: pointer;
+      background: #155eef; color:white; font-weight:700;
+    }
+    button.secondary { background:#485563; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    pre {
+      white-space: pre-wrap; word-break: break-word; min-height: 130px;
+      background:#101828; color:#e6edf3; padding:14px; border-radius:10px;
+      overflow:auto;
+    }
+    .ok { color:#067647; font-weight:700; }
+    .bad { color:#b42318; font-weight:700; }
+    .muted { color:#667085; font-size:.92rem; }
+    code { background:#f1f3f5; padding:.1em .3em; border-radius:4px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>PROMueve · prueba de conectividad</h1>
+    <p>PoC mínima para comprobar <strong>GitHub Pages → Power Automate → SharePoint</strong>.</p>
+
+    <div class="warning">
+      <strong>Solo datos sintéticos.</strong> No introduzcas CIP, nombres, fármacos, datos clínicos, contraseñas ni tokens.
+      La URL del flujo se usa solo en esta pestaña y no se guarda en el navegador.
+    </div>
+
+    <label for="endpoint">URL del trigger de Power Automate</label>
+    <input id="endpoint" type="url" autocomplete="off" spellcheck="false"
+           placeholder="Pegar aquí la URL generada por «When an HTTP request is received»" />
+
+    <div class="row">
+      <div>
+        <label for="correlation">correlation_id</label>
+        <input id="correlation" type="text" />
+      </div>
+      <button class="secondary" id="newId" type="button">Nuevo ID</button>
+    </div>
+
+    <label for="source">source</label>
+    <input id="source" type="text" value="github-pages-poc" />
+
+    <label for="payload">payload</label>
+    <textarea id="payload">synthetic-test</textarea>
+
+    <div class="actions">
+      <button id="send" type="button">ENVIAR TEST</button>
+      <button class="secondary" id="clear" type="button">Limpiar resultado</button>
+    </div>
+
+    <p id="summary" class="muted">Aún no se ha enviado ninguna petición.</p>
+
+    <label>Diagnóstico</label>
+    <pre id="log">Esperando prueba…</pre>
+
+    <p class="muted">
+      Esta página usa <code>fetch()</code> con <code>Content-Type: application/json</code> y NO usa
+      <code>mode: "no-cors"</code>. Si existe un problema de CORS, autenticación o red, queremos verlo.
+      Abre también DevTools → Network antes de pulsar ENVIAR TEST.
+    </p>
+  </div>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const endpoint = $("endpoint");
+  const correlation = $("correlation");
+  const source = $("source");
+  const payload = $("payload");
+  const send = $("send");
+  const log = $("log");
+  const summary = $("summary");
+
+  function makeId() {
+    const now = new Date();
+    const stamp = now.toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+    const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `PROMUEVE-TEST-${stamp}-${rand}`;
+  }
+
+  function newId() {
+    correlation.value = makeId();
+  }
+
+  newId();
+
+  $("newId").addEventListener("click", newId);
+  $("clear").addEventListener("click", () => {
+    log.textContent = "Esperando prueba…";
+    summary.textContent = "Aún no se ha enviado ninguna petición.";
+    summary.className = "muted";
+  });
+
+  send.addEventListener("click", async () => {
+    const url = endpoint.value.trim();
+    if (!url) {
+      alert("Pega primero la URL del trigger de Power Automate.");
+      return;
+    }
+
+    const body = {
+      correlation_id: correlation.value.trim() || makeId(),
+      source: source.value.trim() || "github-pages-poc",
+      payload: payload.value.trim() || "synthetic-test"
+    };
+
+    send.disabled = true;
+    summary.textContent = "Enviando…";
+    summary.className = "muted";
+    log.textContent =
+      "Hora local: " + new Date().toString() + "\n" +
+      "Payload:\n" + JSON.stringify(body, null, 2) + "\n\n" +
+      "Esperando respuesta…";
+
+    const started = performance.now();
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(body),
+        cache: "no-store"
+      });
+
+      const elapsed = Math.round(performance.now() - started);
+      const text = await response.text();
+
+      log.textContent =
+        "RESULTADO FETCH\n" +
+        "status: " + response.status + " " + response.statusText + "\n" +
+        "ok: " + response.ok + "\n" +
+        "elapsed_ms: " + elapsed + "\n" +
+        "response_type: " + response.type + "\n" +
+        "response_url: " + response.url + "\n\n" +
+        "BODY DEVUELTO\n" + (text || "[vacío]") + "\n\n" +
+        "PAYLOAD ENVIADO\n" + JSON.stringify(body, null, 2);
+
+      if (response.ok) {
+        summary.textContent = "La llamada HTTP devolvió éxito. Ahora comprobad que el item apareció en SharePoint.";
+        summary.className = "ok";
+      } else {
+        summary.textContent = "La llamada llegó a obtener respuesta HTTP, pero no fue éxito. Revisad status/body y Network.";
+        summary.className = "bad";
+      }
+    } catch (err) {
+      const elapsed = Math.round(performance.now() - started);
+      log.textContent =
+        "FETCH ERROR\n" +
+        "elapsed_ms: " + elapsed + "\n" +
+        "name: " + (err && err.name ? err.name : "Error") + "\n" +
+        "message: " + (err && err.message ? err.message : String(err)) + "\n\n" +
+        "Esto suele corresponder a CORS, red, autenticación antes de respuesta legible o endpoint incorrecto.\n" +
+        "Mirad DevTools → Network y Console: necesitamos ver si hubo OPTIONS, POST y su status.\n\n" +
+        "PAYLOAD INTENTADO\n" + JSON.stringify(body, null, 2);
+
+      summary.textContent = "El navegador no pudo completar una respuesta legible. No lo clasifiquéis todavía como fallo de Power Automate.";
+      summary.className = "bad";
+    } finally {
+      send.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
