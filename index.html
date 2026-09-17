@@ -3,190 +3,215 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PROMueve · PoC GitHub Pages → Power Automate</title>
+  <title>PROMueve · PoC GitHub Pages → OneDrive local</title>
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-    body { margin: 0; background: #f6f7f9; color: #17202a; }
-    main { max-width: 860px; margin: 40px auto; padding: 0 20px 60px; }
-    .card { background: white; border: 1px solid #dfe4ea; border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(0,0,0,.05); }
-    h1 { font-size: 1.55rem; margin-top: 0; }
-    p { line-height: 1.5; }
-    .warning { background: #fff8e6; border: 1px solid #f0d58a; padding: 12px 14px; border-radius: 10px; }
-    label { display:block; font-weight: 650; margin: 16px 0 6px; }
-    input, textarea, button { font: inherit; }
-    input, textarea {
-      width: 100%; box-sizing: border-box; border: 1px solid #bbc4ce;
-      border-radius: 9px; padding: 10px 12px; background: #fff;
-    }
-    textarea { min-height: 92px; resize: vertical; }
-    .row { display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:end; }
-    button {
-      border: 0; border-radius: 9px; padding: 11px 16px; cursor: pointer;
-      background: #155eef; color:white; font-weight:700;
-    }
-    button.secondary { background:#485563; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
-    pre {
-      white-space: pre-wrap; word-break: break-word; min-height: 130px;
-      background:#101828; color:#e6edf3; padding:14px; border-radius:10px;
-      overflow:auto;
-    }
-    .ok { color:#067647; font-weight:700; }
-    .bad { color:#b42318; font-weight:700; }
-    .muted { color:#667085; font-size:.92rem; }
-    code { background:#f1f3f5; padding:.1em .3em; border-radius:4px; }
+    :root { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin:0; background:#f6f7f9; color:#1f2937; }
+    main { max-width:840px; margin:48px auto; padding:0 20px; }
+    .card { background:white; border:1px solid #e5e7eb; border-radius:16px; padding:24px; box-shadow:0 8px 30px rgba(0,0,0,.05); margin-bottom:18px; }
+    h1 { margin-top:0; font-size:1.6rem; }
+    h2 { font-size:1.05rem; margin-top:0; }
+    p { line-height:1.55; }
+    .warning { background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:14px 16px; margin:18px 0; }
+    label { display:block; margin:14px 0 6px; font-weight:600; }
+    input, textarea { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:10px; padding:10px 12px; font:inherit; background:#fff; }
+    textarea { min-height:90px; resize:vertical; }
+    button { border:0; border-radius:10px; padding:11px 16px; font:inherit; font-weight:700; cursor:pointer; margin-right:8px; margin-top:12px; }
+    .primary { background:#111827; color:white; }
+    .secondary { background:#e5e7eb; color:#111827; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    pre { white-space:pre-wrap; word-break:break-word; background:#111827; color:#f9fafb; padding:16px; border-radius:12px; min-height:90px; }
+    .muted { color:#6b7280; font-size:.92rem; }
+    .status { display:inline-block; padding:4px 9px; border-radius:999px; background:#f3f4f6; font-size:.9rem; font-weight:700; }
   </style>
 </head>
 <body>
 <main>
   <div class="card">
-    <h1>PROMueve · prueba de conectividad</h1>
-    <p>PoC mínima para comprobar <strong>GitHub Pages → Power Automate → SharePoint</strong>.</p>
+    <h1>PROMueve · PoC GitHub Pages → carpeta OneDrive sincronizada</h1>
+    <p>Esta prueba comprueba únicamente si una página web puede escribir un evento JSON sintético en una carpeta local de OneDrive previamente autorizada por el usuario.</p>
+    <div class="warning"><strong>Solo datos sintéticos.</strong> No introducir nombres, CIP, fármacos, datos clínicos, credenciales ni información identificativa.</div>
+    <p>Estado de carpeta: <span id="folderStatus" class="status">No conectada</span></p>
+    <p class="muted" id="folderName"></p>
+    <button id="connectBtn" class="primary">1. Conectar carpeta OneDrive</button>
+    <button id="forgetBtn" class="secondary">Olvidar carpeta guardada</button>
+  </div>
 
-    <div class="warning">
-      <strong>Solo datos sintéticos.</strong> No introduzcas CIP, nombres, fármacos, datos clínicos, contraseñas ni tokens.
-      La URL del flujo se usa solo en esta pestaña y no se guarda en el navegador.
-    </div>
-
-    <label for="endpoint">URL del trigger de Power Automate</label>
-    <input id="endpoint" type="url" autocomplete="off" spellcheck="false"
-           placeholder="Pegar aquí la URL generada por «When an HTTP request is received»" />
-
-    <div class="row">
-      <div>
-        <label for="correlation">correlation_id</label>
-        <input id="correlation" type="text" />
-      </div>
-      <button class="secondary" id="newId" type="button">Nuevo ID</button>
-    </div>
-
+  <div class="card">
+    <h2>Evento sintético</h2>
+    <label for="correlation">correlation_id</label>
+    <input id="correlation" />
     <label for="source">source</label>
-    <input id="source" type="text" value="github-pages-poc" />
-
+    <input id="source" value="github-pages-onedrive-poc" />
     <label for="payload">payload</label>
     <textarea id="payload">synthetic-test</textarea>
+    <label for="status">status</label>
+    <input id="status" value="PENDING" />
+    <button id="writeBtn" class="primary" disabled>2. Generar JSON de prueba</button>
+  </div>
 
-    <div class="actions">
-      <button id="send" type="button">ENVIAR TEST</button>
-      <button class="secondary" id="clear" type="button">Limpiar resultado</button>
-    </div>
-
-    <p id="summary" class="muted">Aún no se ha enviado ninguna petición.</p>
-
-    <label>Diagnóstico</label>
-    <pre id="log">Esperando prueba…</pre>
-
-    <p class="muted">
-      Esta página usa <code>fetch()</code> con <code>Content-Type: application/json</code> y NO usa
-      <code>mode: "no-cors"</code>. Si existe un problema de CORS, autenticación o red, queremos verlo.
-      Abre también DevTools → Network antes de pulsar ENVIAR TEST.
-    </p>
+  <div class="card">
+    <h2>Resultado</h2>
+    <pre id="log">Esperando...</pre>
   </div>
 </main>
 
 <script>
-(function () {
+(() => {
+  const DB_NAME = "promueve-onedrive-poc";
+  const STORE_NAME = "handles";
+  const HANDLE_KEY = "outbox-directory";
+  let directoryHandle = null;
+
   const $ = (id) => document.getElementById(id);
-  const endpoint = $("endpoint");
-  const correlation = $("correlation");
-  const source = $("source");
-  const payload = $("payload");
-  const send = $("send");
+  const connectBtn = $("connectBtn");
+  const forgetBtn = $("forgetBtn");
+  const writeBtn = $("writeBtn");
   const log = $("log");
-  const summary = $("summary");
+  const folderStatus = $("folderStatus");
+  const folderName = $("folderName");
+  const correlation = $("correlation");
 
-  function makeId() {
-    const now = new Date();
-    const stamp = now.toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
-    const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-    return `PROMUEVE-TEST-${stamp}-${rand}`;
+  function makeCorrelationId() {
+    const ts = new Date().toISOString().replace(/[-:.TZ]/g, "");
+    const rnd = Math.random().toString(36).slice(2, 8).toUpperCase();
+    return `PROMUEVE-OD-${ts}-${rnd}`;
+  }
+  correlation.value = makeCorrelationId();
+
+  function setLog(value) {
+    log.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   }
 
-  function newId() {
-    correlation.value = makeId();
+  function setConnected(handle) {
+    directoryHandle = handle;
+    folderStatus.textContent = handle ? "Conectada" : "No conectada";
+    folderName.textContent = handle ? `Carpeta autorizada: ${handle.name}` : "";
+    writeBtn.disabled = !handle;
   }
 
-  newId();
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
 
-  $("newId").addEventListener("click", newId);
-  $("clear").addEventListener("click", () => {
-    log.textContent = "Esperando prueba…";
-    summary.textContent = "Aún no se ha enviado ninguna petición.";
-    summary.className = "muted";
-  });
+  async function saveHandle(handle) {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).put(handle, HANDLE_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  }
 
-  send.addEventListener("click", async () => {
-    const url = endpoint.value.trim();
-    if (!url) {
-      alert("Pega primero la URL del trigger de Power Automate.");
+  async function loadHandle() {
+    const db = await openDb();
+    const handle = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const req = tx.objectStore(STORE_NAME).get(HANDLE_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    return handle;
+  }
+
+  async function clearHandle() {
+    const db = await openDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      tx.objectStore(STORE_NAME).delete(HANDLE_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  }
+
+  async function ensureWritePermission(handle) {
+    const opts = { mode: "readwrite" };
+    if ((await handle.queryPermission(opts)) === "granted") return true;
+    if ((await handle.requestPermission(opts)) === "granted") return true;
+    return false;
+  }
+
+  connectBtn.addEventListener("click", async () => {
+    if (!("showDirectoryPicker" in window)) {
+      setLog("Este navegador no expone showDirectoryPicker(). Prueba con Microsoft Edge o Google Chrome actualizado sobre HTTPS.");
       return;
     }
-
-    const body = {
-      correlation_id: correlation.value.trim() || makeId(),
-      source: source.value.trim() || "github-pages-poc",
-      payload: payload.value.trim() || "synthetic-test"
-    };
-
-    send.disabled = true;
-    summary.textContent = "Enviando…";
-    summary.className = "muted";
-    log.textContent =
-      "Hora local: " + new Date().toString() + "\n" +
-      "Payload:\n" + JSON.stringify(body, null, 2) + "\n\n" +
-      "Esperando respuesta…";
-
-    const started = performance.now();
-
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify(body),
-        cache: "no-store"
-      });
-
-      const elapsed = Math.round(performance.now() - started);
-      const text = await response.text();
-
-      log.textContent =
-        "RESULTADO FETCH\n" +
-        "status: " + response.status + " " + response.statusText + "\n" +
-        "ok: " + response.ok + "\n" +
-        "elapsed_ms: " + elapsed + "\n" +
-        "response_type: " + response.type + "\n" +
-        "response_url: " + response.url + "\n\n" +
-        "BODY DEVUELTO\n" + (text || "[vacío]") + "\n\n" +
-        "PAYLOAD ENVIADO\n" + JSON.stringify(body, null, 2);
-
-      if (response.ok) {
-        summary.textContent = "La llamada HTTP devolvió éxito. Ahora comprobad que el item apareció en SharePoint.";
-        summary.className = "ok";
-      } else {
-        summary.textContent = "La llamada llegó a obtener respuesta HTTP, pero no fue éxito. Revisad status/body y Network.";
-        summary.className = "bad";
-      }
+      const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+      const allowed = await ensureWritePermission(handle);
+      if (!allowed) { setLog("Permiso de escritura no concedido."); return; }
+      await saveHandle(handle);
+      setConnected(handle);
+      setLog({ ok:true, step:"folder-connected", folder:handle.name, message:"Carpeta autorizada y recordada localmente en este navegador." });
     } catch (err) {
-      const elapsed = Math.round(performance.now() - started);
-      log.textContent =
-        "FETCH ERROR\n" +
-        "elapsed_ms: " + elapsed + "\n" +
-        "name: " + (err && err.name ? err.name : "Error") + "\n" +
-        "message: " + (err && err.message ? err.message : String(err)) + "\n\n" +
-        "Esto suele corresponder a CORS, red, autenticación antes de respuesta legible o endpoint incorrecto.\n" +
-        "Mirad DevTools → Network y Console: necesitamos ver si hubo OPTIONS, POST y su status.\n\n" +
-        "PAYLOAD INTENTADO\n" + JSON.stringify(body, null, 2);
-
-      summary.textContent = "El navegador no pudo completar una respuesta legible. No lo clasifiquéis todavía como fallo de Power Automate.";
-      summary.className = "bad";
-    } finally {
-      send.disabled = false;
+      if (err?.name === "AbortError") setLog("Selección de carpeta cancelada.");
+      else setLog({ ok:false, step:"folder-connect", error:err?.name || "Error", message:err?.message || String(err) });
     }
   });
+
+  forgetBtn.addEventListener("click", async () => {
+    try { await clearHandle(); } finally {
+      setConnected(null);
+      setLog("Carpeta olvidada en este navegador.");
+    }
+  });
+
+  writeBtn.addEventListener("click", async () => {
+    if (!directoryHandle) { setLog("No hay carpeta conectada."); return; }
+    try {
+      const allowed = await ensureWritePermission(directoryHandle);
+      if (!allowed) { setLog("El navegador no ha concedido permiso de escritura."); return; }
+      const body = {
+        correlation_id: correlation.value.trim() || makeCorrelationId(),
+        source: $("source").value.trim(),
+        payload: $("payload").value,
+        status: $("status").value.trim() || "PENDING",
+        created_at: new Date().toISOString()
+      };
+      const safeId = body.correlation_id.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const filename = `${safeId}.json`;
+      const fileHandle = await directoryHandle.getFileHandle(filename, { create:true });
+      const writable = await fileHandle.createWritable();
+      await writable.write(JSON.stringify(body, null, 2));
+      await writable.close();
+      setLog({ ok:true, step:"json-written", folder:directoryHandle.name, filename, payload:body });
+      correlation.value = makeCorrelationId();
+    } catch (err) {
+      setLog({ ok:false, step:"json-write", error:err?.name || "Error", message:err?.message || String(err) });
+    }
+  });
+
+  (async () => {
+    if (!("showDirectoryPicker" in window)) {
+      setLog("Aviso: este navegador no expone showDirectoryPicker(). Usa Microsoft Edge o Google Chrome actualizado sobre HTTPS.");
+      return;
+    }
+    try {
+      const saved = await loadHandle();
+      if (!saved) return;
+      const permission = await saved.queryPermission({ mode:"readwrite" });
+      if (permission === "granted") {
+        setConnected(saved);
+        setLog({ ok:true, step:"saved-folder-restored", folder:saved.name });
+      } else {
+        folderName.textContent = `Carpeta recordada: ${saved.name}. Pulsa \"Conectar carpeta OneDrive\" para volver a autorizarla si es necesario.`;
+      }
+    } catch (err) {
+      setLog({ ok:false, step:"restore-folder", error:err?.name || "Error", message:err?.message || String(err) });
+    }
+  })();
 })();
 </script>
 </body>
